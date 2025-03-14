@@ -1,24 +1,42 @@
 // backend/src/models/User.js
-const pool = require('../config/postgres');
-const bcrypt = require('bcrypt');
+const { DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize'); // your Sequelize instance
 
-const createUser = async ({ username, email, password, role = 'buyer' }) => {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `
-    INSERT INTO users (username, email, password, role)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *
-  `;
-    const values = [username, email, hashedPassword, role];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
-};
+class User extends Model { }
 
-const findUserByEmail = async (email) => {
-    const query = 'SELECT * FROM users WHERE email = $1';
-    const { rows } = await pool.query(query, [email]);
-    return rows[0];
-};
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  username: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+  },
+  role: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'buyer',
+  },
+  is_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  sequelize,         // pass the Sequelize instance
+  modelName: 'User', // model name
+  tableName: 'users',// actual table name in DB
+  timestamps: true,  // if you want createdAt/updatedAt
+  underscored: true,
+});
 
-module.exports = { createUser, findUserByEmail };
+module.exports = User;

@@ -1,21 +1,44 @@
 // backend/src/models/Listing.js
-const pool = require('../config/postgres');
+const { DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
-const createListing = async ({ seller_id, category, title, description, price }) => {
-    const query = `
-    INSERT INTO listings (seller_id, category, title, description, price)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING *
-  `;
-    const values = [seller_id, category, title, description, price];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
-};
+class Listing extends Model { }
 
-const getListings = async () => {
-    const query = 'SELECT * FROM listings ORDER BY created_at DESC';
-    const { rows } = await pool.query(query);
-    return rows;
-};
+Listing.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  seller_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  category: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  title: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  is_verified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+}, {
+  sequelize,
+  modelName: 'Listing',
+  tableName: 'listings',
+  timestamps: true,
+  underscored: true,
+});
 
-module.exports = { createListing, getListings };
+module.exports = Listing;

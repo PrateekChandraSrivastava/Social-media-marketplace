@@ -1,21 +1,34 @@
-// backend/src/models/BlogPost.js
-const pool = require('../config/postgres');
+const { DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
-const createBlogPost = async ({ title, content, author }) => {
-    const query = `
-    INSERT INTO blog_posts (title, content, author)
-    VALUES ($1, $2, $3)
-    RETURNING *
-  `;
-    const values = [title, content, author];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
-};
+class BlogPost extends Model { }
 
-const getBlogPosts = async () => {
-    const query = 'SELECT * FROM blog_posts ORDER BY published_at DESC';
-    const { rows } = await pool.query(query);
-    return rows;
-};
+BlogPost.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  author: {
+    type: DataTypes.STRING,
+  },
+  published_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  }
+}, {
+  sequelize,
+  modelName: 'BlogPost',
+  tableName: 'blog_posts',
+  timestamps: false, // or true if you want createdAt/updatedAt
+});
 
-module.exports = { createBlogPost, getBlogPosts };
+module.exports = BlogPost;

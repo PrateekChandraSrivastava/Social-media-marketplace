@@ -1,26 +1,41 @@
 // backend/src/models/Payment.js
-const pool = require('../config/postgres');
+const { DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
-const createPayment = async ({ buyer_id, seller_id, amount, escrow_fee }) => {
-  const query = `
-    INSERT INTO payments (buyer_id, seller_id, amount, escrow_fee)
-    VALUES ($1, $2, $3, $4)
-    RETURNING *
-  `;
-  const values = [buyer_id, seller_id, amount, escrow_fee];
-  const { rows } = await pool.query(query, values);
-  return rows[0];
-};
+class Payment extends Model { }
 
-const getPaymentHistoryByUser = async (userId) => {
-  const query = `
-    SELECT *
-    FROM payments
-    WHERE buyer_id = $1 OR seller_id = $1
-    ORDER BY created_at DESC
-  `;
-  const { rows } = await pool.query(query, [userId]);
-  return rows;
-};
+Payment.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  buyer_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  seller_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  escrow_fee: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'pending',
+  },
+}, {
+  sequelize,
+  modelName: 'Payment',
+  tableName: 'payments',
+  timestamps: true,
+  underscored: true,
+});
 
-module.exports = { createPayment, getPaymentHistoryByUser };
+module.exports = Payment;

@@ -1,10 +1,11 @@
 // backend/src/controllers/blogController.js
-const { createBlogPost, getBlogPosts } = require('../models/BlogPost');
+const { BlogPost } = require('../models');
+
 
 const addBlogPost = async (req, res) => {
     try {
         const { title, content, author } = req.body;
-        const blogPost = await createBlogPost({ title, content, author });
+        const blogPost = await BlogPost.create({ title, content, author });
         res.status(201).json({ message: "Blog post created successfully", blogPost });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
@@ -13,7 +14,7 @@ const addBlogPost = async (req, res) => {
 
 const fetchBlogPosts = async (req, res) => {
     try {
-        const blogPosts = await getBlogPosts();
+        const blogPosts = await BlogPost.findAll();
         res.status(200).json({ blogPosts });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

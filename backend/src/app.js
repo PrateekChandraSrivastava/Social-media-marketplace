@@ -2,16 +2,22 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+// Import your routes as before
 const listingRoutes = require('./routes/listingRoutes');
-const ChatLog = require('./models/ChatLog');
+const ChatLog = require('./models/ChatLog'); // Mongoose model for chat logs
 const adminRoutes = require('./routes/adminRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const userRoutes = require('./routes/userRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Option 2: Restrict to your frontend domain (for production)
+app.use(cors({
+    origin: 'https://social-media-marketplace-rust.vercel.app'
+}));
 app.use(express.json());
 
 // Basic route for testing
@@ -20,11 +26,11 @@ app.get('/', (req, res) => {
 });
 
 // Import and use user routes
-const userRoutes = require('./routes/userRoutes');
+
 app.use('/api/users', userRoutes);
 
 // Import and use payment routes
-const paymentRoutes = require('./routes/paymentRoutes');
+
 app.use('/api/payments', paymentRoutes);
 
 app.use('/api/listings', listingRoutes);
@@ -69,14 +75,25 @@ io.on('connection', (socket) => {
 });
 
 
-// Database connections
-const pool = require('./config/postgres');   // PostgreSQL connection
+
 const connectMongoDB = require('./config/mongodb'); // MongoDB connection
 
 // Connect to MongoDB
 connectMongoDB();
 
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Import Sequelize instance (this should have been set up in src/config/sequelize.js)
+const sequelize = require('./config/sequelize');
+
+// Sync Sequelize models with the PostgreSQL database, then start the server
+sequelize.sync({ force: true })
+    .then(() => {
+        console.log("Database synced and tables recreated.");
+        server.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error("Error syncing database:", error);
+    });
+
