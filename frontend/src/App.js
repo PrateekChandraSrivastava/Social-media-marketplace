@@ -8,6 +8,7 @@ import Login from "./pages/Login";  // Import the Login component
 import LogoutButton from "./components/LogoutButton";  // Optional, for logout
 import TransactionHistory from './pages/TransactionHistory'; // Import the new page
 import ProtectedRoute from "./components/ProtectedRoute";
+import Register from './pages/Register';
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
 
@@ -24,11 +25,13 @@ function App() {
           <Link to="/history">Transaction History</Link>
         </nav>
         <Routes>
+
           <Route path="/" element={<Home />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/history" element={<TransactionHistory />} />
+          <Route path="/register" element={<Register />} />
           {/* Example of using a lazy loaded component */}
           <Route
             path="/lazy"
