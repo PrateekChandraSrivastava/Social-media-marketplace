@@ -4,7 +4,10 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Blog from './pages/Blog';
 import Profile from './pages/Profile';  // Import the Profile page
+import Login from "./pages/Login";  // Import the Login component
+import LogoutButton from "./components/LogoutButton";  // Optional, for logout
 import TransactionHistory from './pages/TransactionHistory'; // Import the new page
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
 
@@ -16,12 +19,15 @@ function App() {
           <Link to="/">Home</Link> |{' '}
           <Link to="/blog">Blog</Link> |{' '}
           <Link to="/profile">Profile</Link> |{' '}
+          <Link to="/login">Login</Link> |{" "}
+          <LogoutButton />
           <Link to="/history">Transaction History</Link>
         </nav>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/login" element={<Login />} />
           <Route path="/history" element={<TransactionHistory />} />
           {/* Example of using a lazy loaded component */}
           <Route
