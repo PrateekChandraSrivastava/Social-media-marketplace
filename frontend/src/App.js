@@ -21,9 +21,9 @@ function App() {
           <Link to="/blog">Blog</Link> |{' '}
           <Link to="/profile">Profile</Link> |{' '}
           <Link to="/login">Login</Link> |{" "}
-          <LogoutButton />
           <Link to="/history">Transaction History</Link> |{" "}
-          <Link to="/register">Sign up</Link>
+          <Link to="/register">Sign up</Link> |{' '}
+          <LogoutButton />
         </nav>
         <Routes>
 
