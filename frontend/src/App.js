@@ -22,7 +22,8 @@ function App() {
           <Link to="/profile">Profile</Link> |{' '}
           <Link to="/login">Login</Link> |{" "}
           <LogoutButton />
-          <Link to="/history">Transaction History</Link>
+          <Link to="/history">Transaction History</Link> |{" "}
+          <Link to="/register">Sign up</Link>
         </nav>
         <Routes>
 
