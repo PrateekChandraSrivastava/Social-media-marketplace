@@ -9,6 +9,7 @@ import LogoutButton from "./components/LogoutButton";  // Optional, for logout
 import TransactionHistory from './pages/TransactionHistory'; // Import the new page
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/history" element={<TransactionHistory />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           {/* Example of using a lazy loaded component */}
           <Route
             path="/lazy"

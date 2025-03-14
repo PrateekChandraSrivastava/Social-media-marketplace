@@ -86,7 +86,7 @@ connectMongoDB();
 const sequelize = require('./config/sequelize');
 
 // Sync Sequelize models with the PostgreSQL database, then start the server
-sequelize.sync({ force: true })
+sequelize.sync({ alter: true })
     .then(() => {
         console.log("Database synced and tables recreated.");
         server.listen(PORT, () => {

@@ -31,6 +31,10 @@ User.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  verification_token: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   sequelize,         // pass the Sequelize instance
   modelName: 'User', // model name
