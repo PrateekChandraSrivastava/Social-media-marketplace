@@ -10,6 +10,8 @@ import TransactionHistory from './pages/TransactionHistory'; // Import the new p
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from './pages/Register';
 import VerifyCode from './pages/VerifyCode';
+import ChatWidget from './components/ChatWidget'; // Import ChatWidget
+import Chat from './pages/Chat';
 
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
@@ -17,6 +19,8 @@ const LazyComponent = lazy(() => import('./LazyComponent'));
 function App() {
   return (
     <Router>
+      {/* Chat widget appears on every page */}
+      <ChatWidget />
       <div>
         <nav>
           <Link to="/">Home</Link> |{' '}
@@ -45,6 +49,9 @@ function App() {
               </Suspense>
             }
           />
+          {/* ...existing routes... */}
+          <Route path="/chat" element={<Chat />} />
+
         </Routes>
       </div>
     </Router>

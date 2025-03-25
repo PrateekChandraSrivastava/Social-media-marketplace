@@ -70,16 +70,14 @@ io.on('connection', (socket) => {
 
     // Listen for chat messages from a client
     socket.on('chatMessage', async (msg) => {
-        console.log(`Message from ${socket.id}: ${msg}`);
-
-        // Save the chat message to MongoDB
+        console.log(`Message from ${socket.id}:`, msg);
         try {
-            await ChatLog.create({ sender: socket.id, message: msg });
+            // Extract the sender and message text from the object.
+            // If your frontend sends { sender: username, message: encryptedMessage }
+            await ChatLog.create({ sender: msg.sender, message: msg.message });
         } catch (error) {
             console.error('Error saving chat message:', error);
         }
-
-        // Broadcast the message to all connected clients
         io.emit('chatMessage', msg);
     });
 
