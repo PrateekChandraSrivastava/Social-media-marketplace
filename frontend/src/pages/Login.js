@@ -23,11 +23,21 @@ const Login = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Check if user is verified
+                if (!data.user.is_verified) {
+                    // Store email temporarily to autofill the verification form
+                    localStorage.setItem("unverifiedEmail", email);
+                    setErrorMsg("You haven't completed email verification. Please verify your email.");
+                    // Redirect to the verification page
+                    navigate("/verify-code");
+                    return;
+                }
+
                 // Save the token in localStorage
                 localStorage.setItem("token", data.token);
-                // Optionally, store user data as well (or use context)
+                // Store user data
                 localStorage.setItem("user", JSON.stringify(data.user));
-                // Redirect to a protected route (e.g., profile or home)
+                // Redirect to the profile page
                 navigate("/profile");
             } else {
                 setErrorMsg(data.message || "Login failed");
@@ -37,6 +47,7 @@ const Login = () => {
             console.error("Login error:", error);
         }
     };
+
 
     return (
         <div style={{ padding: "20px" }}>

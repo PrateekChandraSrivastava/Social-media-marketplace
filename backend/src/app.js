@@ -15,9 +15,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Option 2: Restrict to your frontend domain (for production)
+const allowedOrigins = [
+    // 'http://localhost:3000', // Local development
+    'https://social-media-marketplace-rust.vercel.app' // Production front-end
+];
+
 app.use(cors({
-    origin: 'https://social-media-marketplace-rust.vercel.app'
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
+    }
 }));
+
+
 app.use(express.json());
 
 // Basic route for testing

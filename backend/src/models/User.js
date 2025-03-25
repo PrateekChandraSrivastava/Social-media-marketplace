@@ -31,7 +31,7 @@ User.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  verification_token: {
+  verification_code: {
     type: DataTypes.STRING,
     allowNull: true,
   },

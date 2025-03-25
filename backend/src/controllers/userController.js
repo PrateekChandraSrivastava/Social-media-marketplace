@@ -4,6 +4,9 @@ const { User } = require('../models'); // Import Sequelize model
 
 const nodemailer = require('nodemailer');
 
+
+
+
 // Create a transporter (configure this with your email provider's SMTP settings)
 const transporter = nodemailer.createTransport({
     service: 'Gmail', // or your email service provider
@@ -13,39 +16,59 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Function to send a verification email
-const sendVerificationEmail = async (email, token) => {
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Verify Your Email - Social Media Marketplace',
-        text: `Please verify your email by clicking the following link: ${verificationLink}`,
-        html: `<p>Please verify your email by clicking <a href="${verificationLink}">here</a>.</p>`,
-    });
+const generateVerificationCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString(); // generates a 6-digit code as string
 };
 
+
+
+// Function to send the verification code via email
+const sendVerificationEmail = async (email, verificationCode) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Your Verification Code for Social Media Marketplace',
+        text: `Your verification code is: ${verificationCode}`,
+        html: `<p>Your verification code is: <strong>${verificationCode}</strong></p>`,
+    };
+    await transporter.sendMail(mailOptions);
+};
+
+// Registration function
 const register = async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
-
+        // Check if user already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            // If user exists but is not verified, resend verification code
+            if (!existingUser.is_verified) {
+                const verificationCode = generateVerificationCode();
+                await existingUser.update({ verification_code: verificationCode });
+                await sendVerificationEmail(email, verificationCode);
+                return res.status(200).json({ message: 'User already registered but not verified. Verification code resent.' });
+            } else {
+                // If user exists and is verified, return error
+                return res.status(400).json({ message: 'User already exists' });
+            }
         }
-
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
+        // Generate a 6-digit verification code
+        const verificationCode = generateVerificationCode();
+        // Create the user, storing the verification code
+        const user = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            role,
+            verification_code: verificationCode,
+        });
+        // Send verification code via email
+        await sendVerificationEmail(email, verificationCode);
 
-        // Generate a verification token (you can use JWT or any unique string)
-        const verificationToken = jwt.sign({ email }, process.env.SECRET_KEY, { expiresIn: '1d' });
-        const user = await User.create({ username, email, password: hashedPassword, role, verification_token: verificationToken });
-
-        // Send verification email
-        await sendVerificationEmail(email, verificationToken);
-
-        res.status(201).json({ message: 'Registration successful. A verification email has been sent.' });
+        res.status(201).json({ message: 'Registration successful. A verification code has been sent to your email.' });
     } catch (error) {
-        console.error("Registration error:", error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -57,6 +80,11 @@ const login = async (req, res) => {
         const user = await User.findOne({ where: { email } });
         if (!user) {
             return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        // Enforce email verification:
+        if (!user.is_verified) {
+            return res.status(400).json({ message: "You haven't completed email verification. Please complete verification by entering your verification code." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -107,4 +135,29 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getUserProfile, updateUserProfile };
+// Resend Verification Code Controller
+const resendVerification = async (req, res) => {
+    try {
+        const { email } = req.body;
+        // Find user by email
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+        // Check if user is already verified
+        if (user.is_verified) {
+            return res.status(400).json({ message: 'User is already verified' });
+        }
+        // Generate a new verification code
+        const verificationCode = generateVerificationCode();
+        // Update the user with the new code
+        await user.update({ verification_code: verificationCode });
+        // Send the new verification code via email
+        await sendVerificationEmail(email, verificationCode);
+        res.status(200).json({ message: 'Verification code resent. Please check your email.' });
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+module.exports = { register, login, getUserProfile, updateUserProfile, resendVerification };
