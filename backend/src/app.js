@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 
 // Option 2: Restrict to your frontend domain (for production)
 const allowedOrigins = [
-    // 'http://localhost:3000', // Local development
+    'http://localhost:3000', // Local development
     'https://social-media-marketplace-rust.vercel.app' // Production front-end
 ];
 

@@ -40,11 +40,17 @@ const verifyListing = async (req, res) => {
 // ✅ Replace raw SQL with Sequelize
 const getSellerListings = async (req, res) => {
     try {
-        const sellerId = req.user.id;
-        const listings = await Listing.findAll({
-            where: { seller_id: sellerId },
-            order: [['created_at', 'DESC']]
-        });
+        let listings;
+        // If the logged-in user is an admin, fetch all listings (or adjust as needed)
+        if (req.user.role === 'admin') {
+            listings = await Listing.findAll({ order: [['createdAt', 'DESC']] });
+        } else {
+            // For sellers, fetch only their listings
+            listings = await Listing.findAll({
+                where: { seller_id: req.user.id },
+                order: [['createdAt', 'DESC']],
+            });
+        }
         res.status(200).json({ listings });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

@@ -1,5 +1,6 @@
 // frontend/src/pages/Register.js
 import React, { useState } from 'react';
+
 import { Helmet } from 'react-helmet-async';
 
 const Register = () => {
@@ -133,6 +134,7 @@ const Register = () => {
                         <select name="role" value={formData.role} onChange={handleChange}>
                             <option value="buyer">Buyer</option>
                             <option value="seller">Seller</option>
+
                         </select>
                     </div>
                     <button type="submit" style={{ marginTop: '10px' }}>Register</button>

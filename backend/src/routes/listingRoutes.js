@@ -2,20 +2,18 @@
 const express = require('express');
 const router = express.Router();
 const { addListing, fetchListings, verifyListing, getSellerListings } = require('../controllers/listingController');
-const { protect } = require('../middleware/authMiddleware');
-// Endpoint to create a new listing
-router.post('/', addListing);
+const { protect, sellerOrAdmin } = require('../middleware/authMiddleware');
 
-// Endpoint to fetch all listings
+// Endpoint to create a new listing (allowed for sellers or admins)
+router.post('/', protect, sellerOrAdmin, addListing);
+
+// Endpoint to fetch all listings (public)
 router.get('/', fetchListings);
 
-// Optional: Endpoint to verify a listing (e.g., by admin)
-// Send a PATCH request to /api/listings/:id/verify
-router.patch('/:id/verify', verifyListing);
+// Endpoint to verify a listing (admin-only)
+router.patch('/:id/verify', protect, sellerOrAdmin, verifyListing);
 
-// New route: Get listings for the authenticated seller
-router.get('/my-listings', protect, getSellerListings);
-
-
+// New route: Get listings for the authenticated seller (allowed for sellers or admins)
+router.get('/my-listings', protect, sellerOrAdmin, getSellerListings);
 
 module.exports = router;

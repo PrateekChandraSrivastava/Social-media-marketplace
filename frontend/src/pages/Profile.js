@@ -24,7 +24,7 @@ const Profile = () => {
                     setProfile(data);
                     setFormData({ username: data.username, email: data.email });
                     // If user is a seller, fetch their listings
-                    if (data.role === 'seller') {
+                    if (data.role === 'seller' || data.role === 'admin') {
                         fetchSellerListings(token);
                     }
                 } else {
