@@ -1,52 +1,69 @@
 // frontend/src/pages/HomePage.js
-import React from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/HomePage.css'; // We'll define some custom CSS here
+import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import ListingCard from '../components/ListingCard';
+import '../styles/HomePage.css';
 
 const HomePage = () => {
+    const navigate = useNavigate();
+    const [listings, setListings] = useState([]);
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/listings`);
+                const data = await response.json();
+                if (response.ok) {
+                    setListings(data.listings || []);
+                } else {
+                    console.error("Error fetching listings:", data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching listings:", error);
+            }
+        };
+        fetchListings();
+    }, []);
+
     return (
         <div className="home-container">
-            {/* Hero Section */}
+            <Helmet>
+                <title>Home - Social Media Marketplace</title>
+                <meta name="description" content="Browse listings on Social Media Marketplace." />
+            </Helmet>
+            <div className="cta-buttons">
+                {(user && (user.role === "seller" || user.role === "admin")) && (
+                    <button onClick={() => navigate('/sell')}>Sell Now</button>
+                )}
+                <button onClick={() => navigate('/buy')}>Buy Now</button>
+            </div>
             <section className="hero-section">
                 <div className="hero-content">
-                    <h1>Buy Tiktok Accounts &amp; YouTube Channels</h1>
+                    <h1>Buy Theme Pages, Tiktok Accounts &amp; YouTube Channels</h1>
                     <p className="hero-subtitle">
-                        Leading marketplace to buy and sell established Tiktok accounts, YouTube channels, and theme pages!
+                        Best market to buy and sell theme pages, YouTube channels and Tiktok accounts!
                     </p>
-                    <Link to="/listings" className="hero-cta">Browse Listings</Link>
+                    <button onClick={() => navigate('/listings')} className="hero-cta">
+                        Browse Listings
+                    </button>
                 </div>
             </section>
-
-            {/* Listings/Services Section */}
+            {/* Listings Section */}
             <section className="listings-section">
-                <h2>Featured Pages and Channels</h2>
+                <h2>Featured Listings</h2>
                 <div className="listings-grid">
-                    {/* Example Card #1 */}
-                    <div className="listing-card">
-                        <img src="https://via.placeholder.com/300x200" alt="Listing" />
-                        <h3>@samlon785</h3>
-                        <p>I am Selling USA Affiliate Shop Accounts. Ready to go monetized channels!</p>
-                        <Link to="/listings/1" className="card-button">View Details</Link>
-                    </div>
-                    {/* Example Card #2 */}
-                    <div className="listing-card">
-                        <img src="https://via.placeholder.com/300x200" alt="Listing" />
-                        <h3>@fashionSHOP</h3>
-                        <p>MONETIZED for sale. Health &amp; business. Great for e-commerce!</p>
-                        <Link to="/listings/2" className="card-button">View Details</Link>
-                    </div>
-                    {/* Example Card #3 */}
-                    <div className="listing-card">
-                        <img src="https://via.placeholder.com/300x200" alt="Listing" />
-                        <h3>@smith_SHOP</h3>
-                        <p>USA Base Ads. Perfect for brand deals. Active audience!</p>
-                        <Link to="/listings/3" className="card-button">View Details</Link>
-                    </div>
-                    {/* Add more cards as needed */}
+                    {listings.length > 0 ? (
+                        listings.map(listing => (
+                            <ListingCard key={listing.id} listing={listing} />
+                        ))
+                    ) : (
+                        <p>No listings available.</p>
+                    )}
                 </div>
             </section>
-
-            {/* Additional Section (optional) */}
+            {/* Additional Info Section */}
             <section className="info-section">
                 <h2>How It Works</h2>
                 <p>Explain the process of buying or selling social media accounts.</p>

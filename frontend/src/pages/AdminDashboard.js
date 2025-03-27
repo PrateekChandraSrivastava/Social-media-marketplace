@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import AdminPromotion from '../components/AdminPromotion';
+import ListingCard from '../components/ListingCard'; // Import your reusable listing card component
+import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -90,13 +92,11 @@ const AdminDashboard = () => {
                 return (
                     <div>
                         <h2>Listings</h2>
-                        <ul>
+                        <div className="listings-grid">
                             {(listings || []).map(listing => (
-                                <li key={listing.id}>
-                                    {listing.title} - {listing.category} - Verified: {listing.is_verified ? "Yes" : "No"}
-                                </li>
+                                <ListingCard key={listing.id} listing={listing} />
                             ))}
-                        </ul>
+                        </div>
                     </div>
                 );
             case 'blogs':
@@ -143,7 +143,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // If not an admin, show error message or redirect
     if (errorMsg) {
         return (
             <div style={{ padding: '20px', color: 'red' }}>

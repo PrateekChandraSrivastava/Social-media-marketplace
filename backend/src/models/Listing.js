@@ -25,6 +25,15 @@ Listing.init({
   description: {
     type: DataTypes.TEXT,
   },
+  // New fields for selling descriptions
+  short_description: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  selling_description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
@@ -32,6 +41,10 @@ Listing.init({
   is_verified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
+  },
+  channelDetails: {
+    type: DataTypes.JSON,
+    allowNull: true
   },
 }, {
   sequelize,

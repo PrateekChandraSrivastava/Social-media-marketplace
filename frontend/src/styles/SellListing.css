@@ -1,0 +1,96 @@
+/* frontend/src/pages/SellListing.css */
+
+/* Container for the Sell Listing page */
+.sell-listing-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Page title styling */
+.sell-listing-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Form styling */
+.sell-listing-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sell-listing-form label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.sell-listing-form input,
+.sell-listing-form textarea,
+.sell-listing-form select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.sell-listing-form textarea {
+    resize: vertical;
+}
+
+/* Button styling */
+.sell-listing-form button {
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.sell-listing-form button:hover {
+    background-color: #0056b3;
+}
+
+/* Preview section for channel details */
+.channel-preview {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.channel-preview img {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+}
+
+/* Verification section styling */
+.verification-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    background-color: #fdfdfd;
+}
+
+/* Message styling */
+.sell-listing-container .message {
+    text-align: center;
+    font-size: 16px;
+    margin-top: 15px;
+    color: #333;
+}

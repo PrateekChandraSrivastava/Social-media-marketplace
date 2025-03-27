@@ -1,6 +1,8 @@
 // frontend/src/pages/Profile.js
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import ListingCard from '../components/ListingCard';
+import '../styles/Profile.css'; // For grid layout styling
 
 const Profile = () => {
     const [profile, setProfile] = useState(null);
@@ -11,7 +13,6 @@ const Profile = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                // Assume the token is stored in localStorage after login
                 const token = localStorage.getItem('token');
                 const response = await fetch(`${process.env.REACT_APP_API_URL}/users/profile`, {
                     headers: {
@@ -23,7 +24,6 @@ const Profile = () => {
                 if (response.ok) {
                     setProfile(data);
                     setFormData({ username: data.username, email: data.email });
-                    // If user is a seller, fetch their listings
                     if (data.role === 'seller' || data.role === 'admin') {
                         fetchSellerListings(token);
                     }
@@ -40,12 +40,12 @@ const Profile = () => {
                 const response = await fetch(`${process.env.REACT_APP_API_URL}/listings/my-listings`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${token}`
                     },
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    setSellerListings(data.listings);
+                    setSellerListings(data.listings || []);
                 } else {
                     console.error('Error fetching listings:', data.message);
                 }
@@ -57,12 +57,10 @@ const Profile = () => {
         fetchProfile();
     }, []);
 
-    // Handle form field changes
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Handle profile update
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
@@ -127,24 +125,19 @@ const Profile = () => {
                         <button type="submit">Update Profile</button>
                     </form>
                     {message && <p>{message}</p>}
-                    {profile.role === 'seller' && (
+                    {(profile.role === 'seller' || profile.role === 'admin') && (
                         <>
                             <hr />
                             <h2>Your Listings</h2>
-                            {sellerListings.length > 0 ? (
-                                sellerListings.map(listing => (
-                                    <div key={listing.id} style={{ borderBottom: '1px solid #ccc', marginBottom: '20px' }}>
-                                        <h3>{listing.title}</h3>
-                                        <p><strong>Category:</strong> {listing.category}</p>
-                                        <p><strong>Description:</strong> {listing.description}</p>
-                                        <p><strong>Price:</strong> ${listing.price}</p>
-                                        <p><strong>Verified:</strong> {listing.is_verified ? 'Yes' : 'No'}</p>
-                                        <p><strong>Date:</strong> {new Date(listing.created_at).toLocaleString()}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p>You have no listings.</p>
-                            )}
+                            <div className="listings-grid">
+                                {sellerListings.length > 0 ? (
+                                    sellerListings.map(listing => (
+                                        <ListingCard key={listing.id} listing={listing} />
+                                    ))
+                                ) : (
+                                    <p>You have no listings.</p>
+                                )}
+                            </div>
                         </>
                     )}
                 </div>

@@ -1,0 +1,64 @@
+/* frontend/src/styles/ListingDetails.css */
+
+.listing-details-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.listing-details-container h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.channel-info-details {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.channel-img-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+}
+
+.channel-info-details h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.channel-info-details p {
+    margin: 5px 0 0;
+    color: #555;
+    font-size: 1rem;
+}
+
+.listing-full-description {
+    margin: 20px 0;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #333;
+}
+
+.listing-details-container p {
+    margin: 10px 0;
+    font-size: 1rem;
+}
+
+.listing-price {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin: 15px 0;
+    text-align: center;
+    color: #28a745;
+}

@@ -17,7 +17,8 @@ import Payment from './pages/Payment';
 import PaymentHistory from './pages/PaymentHistory';
 import HomePage from './pages/HomePage';
 import WriteBlog from './pages/WriteBlog';  // New page for writing/editing blogs
-
+import SellListing from './pages/SellListing';
+import ListingDetails from './pages/ListingDetails';
 
 const LazyComponent = lazy(() => import('./LazyComponent'));
 
@@ -54,6 +55,8 @@ function App() {
           <Route path="/write-blog" element={<WriteBlog />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/payment-history" element={<PaymentHistory />} />
+          <Route path="/sell" element={<SellListing />} />
+          <Route path="/listings/:id" element={<ListingDetails />} />
 
           {/* Example of using a lazy loaded component */}
           <Route
