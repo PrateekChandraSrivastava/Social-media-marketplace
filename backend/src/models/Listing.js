@@ -46,6 +46,32 @@ Listing.init({
     type: DataTypes.JSON,
     allowNull: true
   },
+  // New fields for additional details
+  revenue_sources: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  product_images: {
+    type: DataTypes.JSON, // Using TEXT to store base64 ARRAY or a URL
+    allowNull: true,
+  },
+  // Additional fields missing in your original model:
+  monetization: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  revenue: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  category_detail: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  reason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }, {
   sequelize,
   modelName: 'Listing',

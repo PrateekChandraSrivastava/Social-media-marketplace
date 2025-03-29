@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import imageCompression from 'browser-image-compression'; // Ensure you install this package: npm install browser-image-compression
 import '../styles/SellListing.css';
 
 const SellListing = () => {
@@ -11,20 +12,63 @@ const SellListing = () => {
     const [channelURL, setChannelURL] = useState('');
     const [channelDetails, setChannelDetails] = useState(null);
     const [verified, setVerified] = useState(false);
+
+    // Use underscore keys to match backend model; note product_images is now an array.
     const [otherDetails, setOtherDetails] = useState({
-        shortDescription: '',
-        sellingDescription: '',
+        title: '',                  // Title if seller wants to override auto-fill
+        short_description: '',      // Short selling description for card preview
+        selling_description: '',    // Full selling description for details page
         price: '',
         monetization: '',
         revenue: '',
         category: '',
-        reason: ''
+        reason: '',
+        revenue_sources: '',
+        product_images: []          // Array to hold multiple product images (base64 strings)
     });
     const [message, setMessage] = useState('');
+
+    // Ensure URL has a protocol
+    const ensureProtocol = (url) => {
+        if (!/^https?:\/\//i.test(url)) {
+            return 'https://' + url;
+        }
+        return url;
+    };
+
+    // Handle file changes and compress each image, then store as base64 strings
+    const handleFileChange = async (e) => {
+        const files = Array.from(e.target.files);
+        const options = {
+            maxSizeMB: 2,            // Maximum size in MB
+            maxWidthOrHeight: 1200,   // Resize dimensions
+            useWebWorker: true
+        };
+        try {
+            const compressedFiles = await Promise.all(
+                files.map(async (file) => {
+                    const compressedFile = await imageCompression(file, options);
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            resolve(reader.result); // base64 string
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(compressedFile);
+                    });
+                })
+            );
+            setOtherDetails({ ...otherDetails, product_images: compressedFiles });
+        } catch (error) {
+            console.error("Error compressing images:", error);
+            setMessage("Error processing images.");
+        }
+    };
 
     // Fetch YouTube channel details by calling backend endpoint
     const fetchChannelDetails = async () => {
         setMessage('');
+        const urlWithProtocol = ensureProtocol(channelURL);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${process.env.REACT_APP_API_URL}/listings/fetch-youtube-details`, {
@@ -33,7 +77,7 @@ const SellListing = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ channelURL })
+                body: JSON.stringify({ channelURL: urlWithProtocol })
             });
             const data = await response.json();
             if (response.ok) {
@@ -80,6 +124,7 @@ const SellListing = () => {
     };
 
     // Handle final listing submission
+    // Within SellListing.js, inside handleSubmit:
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (sellType === 'socialMedia' && platform === 'youtube' && !verified) {
@@ -88,32 +133,37 @@ const SellListing = () => {
         }
         const token = localStorage.getItem('token');
 
-        // If no title is provided by the user and it's a YouTube listing, use the channel title from channelDetails
+        // Use auto-generated title if not provided
         let finalTitle = otherDetails.title;
         if (platform === 'youtube' && channelDetails && !finalTitle) {
             finalTitle = channelDetails.title;
         }
-        // If still no title, you can block submission
         if (!finalTitle) {
             setMessage('Title is required.');
             return;
         }
 
+        // Convert numeric fields: if empty, set to null (or a default value)
+        const parsedPrice = otherDetails.price ? parseFloat(otherDetails.price) : null;
+        const parsedRevenue = otherDetails.revenue ? parseFloat(otherDetails.revenue) : null;
+
         const listingData = {
             seller_id: JSON.parse(localStorage.getItem('user')).id,
             category: sellType,
             platform,
-            channelURL,
+            channelURL: ensureProtocol(channelURL), // ensure URL has protocol
             channelDetails,
             verified,
-            title: finalTitle, // include title here
-            shortDescription: otherDetails.shortDescription,
-            sellingDescription: otherDetails.sellingDescription,
-            price: otherDetails.price,
+            title: finalTitle,
+            short_description: otherDetails.short_description,
+            selling_description: otherDetails.selling_description,
+            price: parsedPrice,               // Use numeric value
             monetization: otherDetails.monetization,
-            revenue: otherDetails.revenue,
+            revenue: parsedRevenue,           // Use numeric value
             category_detail: otherDetails.category,
             reason: otherDetails.reason,
+            revenue_sources: otherDetails.revenue_sources,
+            product_images: otherDetails.product_images, // array of images
         };
 
         try {
@@ -137,7 +187,6 @@ const SellListing = () => {
             setMessage('An error occurred while submitting the listing.');
         }
     };
-
 
     return (
         <div className="sell-listing-container">
@@ -202,7 +251,7 @@ const SellListing = () => {
                     <div>
                         <label>Description of Service:</label>
                         <textarea
-                            value={otherDetails.description}
+                            value={otherDetails.description || ''}
                             onChange={(e) =>
                                 setOtherDetails({ ...otherDetails, description: e.target.value })
                             }
@@ -210,47 +259,82 @@ const SellListing = () => {
                         ></textarea>
                     </div>
                 )}
-                {/* New field for short selling description (subject) */}
+                {/* Field for short selling description */}
                 <div>
                     <label>Short Selling Description:</label>
                     <input
                         type="text"
-                        value={otherDetails.shortDescription}
+                        value={otherDetails.short_description}
                         onChange={(e) =>
-                            setOtherDetails({ ...otherDetails, shortDescription: e.target.value })
+                            setOtherDetails({ ...otherDetails, short_description: e.target.value })
                         }
                         required
                     />
                 </div>
-                {/* New field for full selling description */}
+                {/* Field for full selling description */}
                 <div>
                     <label>Full Selling Description:</label>
                     <textarea
-                        value={otherDetails.sellingDescription}
+                        value={otherDetails.selling_description}
                         onChange={(e) =>
-                            setOtherDetails({ ...otherDetails, sellingDescription: e.target.value })
+                            setOtherDetails({ ...otherDetails, selling_description: e.target.value })
                         }
                         required
                     ></textarea>
                 </div>
-                {/* Common fields */}
+                {/* New Price field */}
                 <div>
-                    <label>Price:</label>
+                    <label>Price ($):</label>
                     <input
                         type="number"
                         value={otherDetails.price}
-                        onChange={(e) => setOtherDetails({ ...otherDetails, price: e.target.value })}
+                        onChange={(e) =>
+                            setOtherDetails({ ...otherDetails, price: e.target.value })
+                        }
                         required
                     />
                 </div>
+                {/* Additional fields */}
                 <div>
-                    <label>Monetisation Status:</label>
+                    <label>Revenue Sources:</label>
                     <input
                         type="text"
-                        value={otherDetails.monetization}
-                        onChange={(e) => setOtherDetails({ ...otherDetails, monetization: e.target.value })}
-                        required
+                        value={otherDetails.revenue_sources}
+                        onChange={(e) =>
+                            setOtherDetails({ ...otherDetails, revenue_sources: e.target.value })
+                        }
                     />
+                </div>
+                <div>
+                    <label>Channel/Service Category:</label>
+                    <select
+                        value={otherDetails.category}
+                        onChange={(e) =>
+                            setOtherDetails({ ...otherDetails, category: e.target.value })
+                        }
+                        required
+                    >
+                        <option value="">Select Category</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="education">Education</option>
+                        <option value="lifestyle">Lifestyle</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Monetisation Status:</label>
+                    <select
+                        value={otherDetails.monetization}
+                        onChange={(e) =>
+                            setOtherDetails({ ...otherDetails, monetization: e.target.value })
+                        }
+                        required
+                    >
+                        <option value="">Select Monetisation Status</option>
+                        <option value="enabled">Enabled</option>
+                        <option value="not enabled">Not Enabled</option>
+                    </select>
                 </div>
                 <div>
                     <label>Monthly Revenue:</label>
@@ -261,20 +345,15 @@ const SellListing = () => {
                     />
                 </div>
                 <div>
-                    <label>Channel/Service Category:</label>
-                    <input
-                        type="text"
-                        value={otherDetails.category}
-                        onChange={(e) => setOtherDetails({ ...otherDetails, category: e.target.value })}
-                        required
-                    />
-                </div>
-                <div>
                     <label>Selling Reason:</label>
                     <textarea
                         value={otherDetails.reason}
                         onChange={(e) => setOtherDetails({ ...otherDetails, reason: e.target.value })}
                     ></textarea>
+                </div>
+                <div>
+                    <label>Product Images:</label>
+                    <input type="file" multiple onChange={handleFileChange} accept="image/*" required />
                 </div>
                 <button type="submit">Submit Listing</button>
             </form>

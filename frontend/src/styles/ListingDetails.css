@@ -1,64 +1,160 @@
 /* frontend/src/styles/ListingDetails.css */
-
 .listing-details-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 30px auto;
     padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-family: Arial, sans-serif;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
-.listing-details-container h1 {
+.listing-heading {
     font-size: 2rem;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.channel-info-details {
-    display: flex;
-    align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
-}
-
-.channel-img-large {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 20px;
-}
-
-.channel-info-details h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.channel-info-details p {
-    margin: 5px 0 0;
-    color: #555;
-    font-size: 1rem;
-}
-
-.listing-full-description {
-    margin: 20px 0;
-    line-height: 1.6;
-    font-size: 1rem;
+    text-align: center;
     color: #333;
 }
 
-.listing-details-container p {
-    margin: 10px 0;
-    font-size: 1rem;
+.details-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.listing-price {
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin: 15px 0;
+.channel-img-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+    border: 2px solid #ddd;
+}
+
+.channel-details h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.full-description {
+    margin: 20px 0;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #444;
+}
+
+.additional-details {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.additional-details p {
+    margin: 8px 0;
+}
+
+/* Product Images Section at the Bottom */
+.product-images-container {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    animation: slideUp 1s ease-in-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-image {
+    width: 200px;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeIn 1s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.no-images-message {
     text-align: center;
-    color: #28a745;
+    font-size: 1.2rem;
+    color: #888;
+    margin-top: 20px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    animation: fadeInModal 0.5s ease;
+}
+
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 5px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff5c5c;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
 }

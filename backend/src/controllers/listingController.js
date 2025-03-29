@@ -1,12 +1,12 @@
 // backend/src/controllers/listingController.js
 
 const axios = require('axios');
-const { Listing } = require('../models'); // Ensure your models are exported correctly
+const { Listing } = require('../models');
 
 const API_URL = "https://www.googleapis.com/youtube/v3/";
-const API_key = process.env.YOUTUBE_API_KEY; // Set in your .env
+const API_key = process.env.YOUTUBE_API_KEY;
 
-// In-memory storage for verification codes (use a persistent store in production)
+// In-memory storage for verification codes (for demo purposes)
 const verificationCodes = new Map();
 
 // Helper function to generate a random verification code
@@ -19,12 +19,102 @@ function generateVerificationCode(length = 6) {
     return code;
 }
 
-// Create a new listing
+// Helper function to clean URL (remove query parameters and trailing slashes)
+function cleanURL(url) {
+    if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+    }
+    return url.split('?')[0].replace(/\/$/, '');
+}
+
+// Helper function to extract channel identifier from various YouTube URL formats
+async function extractChannelId(channelURL) {
+    // Check if input is already a channel ID (starts with "UC" and no "youtube.com" present)
+    if (!channelURL.includes("youtube.com") && channelURL.startsWith("UC")) {
+        return channelURL;
+    }
+
+    channelURL = cleanURL(channelURL);
+
+    const channelRegex = /youtube\.com\/channel\/([^\/]+)/i;
+    const userRegex = /youtube\.com\/user\/([^\/]+)/i;
+    const handleRegex = /youtube\.com\/@([^\/]+)/i;
+
+    if (channelRegex.test(channelURL)) {
+        return channelURL.match(channelRegex)[1];
+    } else if (userRegex.test(channelURL)) {
+        const username = channelURL.match(userRegex)[1];
+        const response = await axios.get(`${API_URL}channels`, {
+            params: {
+                part: 'id',
+                forUsername: username,
+                key: API_key
+            }
+        });
+        if (response.data.items.length > 0) {
+            return response.data.items[0].id;
+        } else {
+            throw new Error("Channel not found for this username.");
+        }
+    } else if (handleRegex.test(channelURL)) {
+        const handle = channelURL.match(handleRegex)[1];
+        const response = await axios.get(`${API_URL}search`, {
+            params: {
+                part: 'snippet',
+                type: 'channel',
+                q: handle,
+                key: API_key
+            }
+        });
+        if (response.data.items.length > 0) {
+            return response.data.items[0].id.channelId;
+        } else {
+            throw new Error("Channel not found for this handle.");
+        }
+    } else {
+        throw new Error("Invalid URL format.");
+    }
+}
+
+// Create a new listing including the new fields
+
 const addListing = async (req, res) => {
     try {
-        const { seller_id, category, title, description, price, channelDetails, verified } = req.body;
-        // Ensure channelDetails is included if available
-        const listing = await Listing.create({ seller_id, category, title, description, price, channelDetails, verified });
+        const {
+            seller_id,
+            category,
+            title,
+            description,
+            short_description,
+            selling_description,
+            price,
+            channelDetails,
+            verified,
+            revenue_sources,
+            product_images, // This should now be an array (if multiple images were sent)
+            monetization,
+            revenue,
+            category_detail,
+            reason
+        } = req.body;
+
+        const listing = await Listing.create({
+            seller_id,
+            category,
+            title,
+            description,
+            short_description,
+            selling_description,
+            price,
+            channelDetails,
+            verified,
+            revenue_sources,
+            product_images: product_images, // Make sure the key matches your model's key "product_images"
+            monetization,
+            revenue,
+            category_detail,
+            reason
+        });
         res.status(201).json({ message: "Listing created successfully", listing });
     } catch (error) {
         console.error("Error in addListing:", error);
@@ -79,54 +169,13 @@ const getSellerListings = async (req, res) => {
 // Fetch YouTube channel details and generate a verification code
 const fetchYoutubeDetails = async (req, res) => {
     const { channelURL } = req.body;
-    let channelId = '';
-
-    // Determine channelId from URL
-    if (channelURL.includes('/channel/')) {
-        channelId = channelURL.split("/channel/").pop();
-    } else if (channelURL.includes('/user/')) {
-        const username = channelURL.split('/user/').pop();
-        try {
-            const response = await axios.get(`${API_URL}channels`, {
-                params: {
-                    part: 'id',
-                    forUsername: username,
-                    key: API_key
-                }
-            });
-            if (response.data.items.length > 0) {
-                channelId = response.data.items[0].id;
-            } else {
-                return res.status(404).json({ message: "Channel not found for this username." });
-            }
-        } catch (error) {
-            return res.status(500).json({ message: "Error fetching channel by username.", error: error.message });
-        }
-    } else if (channelURL.includes('/@')) {
-        // For handle URLs
-        const handle = channelURL.split('/@').pop();
-        try {
-            const response = await axios.get(`${API_URL}search`, {
-                params: {
-                    part: 'snippet',
-                    type: 'channel',
-                    q: handle,
-                    key: API_key
-                }
-            });
-            if (response.data.items.length > 0) {
-                channelId = response.data.items[0].id.channelId;
-            } else {
-                return res.status(404).json({ message: "Channel not found for this handle." });
-            }
-        } catch (error) {
-            return res.status(500).json({ message: "Error fetching channel by handle.", error: error.message });
-        }
-    } else {
-        return res.status(400).json({ message: "Invalid URL format." });
+    let channelId;
+    try {
+        channelId = await extractChannelId(channelURL);
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
     }
 
-    // Fetch channel details using channelId
     try {
         const response = await axios.get(`${API_URL}channels`, {
             params: {
@@ -137,16 +186,14 @@ const fetchYoutubeDetails = async (req, res) => {
         });
         if (response.data.items.length > 0) {
             const channelData = response.data.items[0];
-            // Generate a verification code
             const code = generateVerificationCode(6);
-            // Store the code in memory mapped by channelId (for demo purposes)
             verificationCodes.set(channelId, code);
             const details = {
                 channelId,
                 title: channelData.snippet.title,
                 profilePicture: channelData.snippet.thumbnails.default.url,
                 subscribers: channelData.statistics.subscriberCount,
-                verificationCode: code // Include the code in the response
+                verificationCode: code
             };
             return res.status(200).json({ channelDetails: details });
         } else {
@@ -163,16 +210,12 @@ const verifyYoutubeChannel = async (req, res) => {
     if (!channelId) {
         return res.status(400).json({ message: "channelId is required" });
     }
-
-    // If no code is provided, try to get it from the stored codes in memory.
     if (!verificationCode) {
         verificationCode = verificationCodes.get(channelId);
     }
-
     if (!verificationCode) {
         return res.status(400).json({ message: "Verification code is required." });
     }
-
     try {
         const response = await axios.get(`${API_URL}channels`, {
             params: {
